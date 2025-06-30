@@ -1,0 +1,45 @@
+# ชื่อของ Workflow
+name: Deploy Vue App to GitHub Pages
+
+# กำหนดให้ Workflow นี้ทำงานเมื่อมีการ push ไปที่ branch 'master'
+on:
+  push:
+    branches:
+      - master
+
+# กำหนดสิทธิ์ให้ Workflow สามารถเขียนข้อมูลลง gh-pages ได้
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# รายการของงานที่จะให้ทำ
+jobs:
+  build-and-deploy:
+    # เลือกระบบปฏิบัติการที่จะใช้รันงาน
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout โค้ดล่าสุดจาก repository
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      # 2. ตั้งค่า Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # แนะนำให้ใช้เวอร์ชัน LTS ล่าสุด
+
+      # 3. ติดตั้ง Dependencies ทั้งหมดของโปรเจค
+      - name: Install Dependencies
+        run: npm install
+
+      # 4. Build โปรเจค Vue ของเรา (จะสร้างโฟลเดอร์ dist ขึ้นมา)
+      - name: Build Project
+        run: npm run build
+
+      # 5. นำโฟลเดอร์ dist ที่ได้ไป Deploy ที่ GitHub Pages
+      - name: Deploy 🚀
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
