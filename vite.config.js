@@ -8,5 +8,6 @@ export default defineConfig({
   content: [
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}", // บรรทัดนี้สำคัญมาก
-  ]
+  ],
+  base: '/Vue-Quick-Warfarin-V2/'
 })
