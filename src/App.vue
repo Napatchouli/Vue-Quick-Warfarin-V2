@@ -5,6 +5,7 @@ import DosingTab from './components/DosingTab.vue'
 import TwdDesignTab from './components/TwdDesignTab.vue'
 import FollowUpTab from './components/FollowUpTab.vue'
 import DosingEntryCard from './components/DosingEntryCard.vue'
+import About from './components/About.vue'
 
 const activeTab = shallowRef(GuidelineTab)
 const activeTabName = ref('Guideline')
@@ -13,7 +14,8 @@ const tabs = {
   'Guideline': GuidelineTab,
   'Dosing': DosingTab,
   'TWD Design': TwdDesignTab,
-  'Follow-up': FollowUpTab
+  'Follow-up': FollowUpTab,
+  'Info' : About
 }
 
 // --- State ที่จะแชร์ระหว่าง Tabs ---

@@ -23,33 +23,48 @@ const availableStrengths = ref({ 2: true, 3: true, 5: true });
 const foundRegimens = ref([]);
 const showResult = ref(false);
 
-// ---- Functions ----
+// --- [แก้ไข] ฟังก์ชัน findRegimens ทั้งหมด ---
 function findRegimens() {
-    // ... Logic การค้นหาเหมือนเดิมทุกประการ ...
-    const twd = parseFloat(localTargetTWD.value);
+  const twd = parseFloat(localTargetTWD.value);
   if (isNaN(twd)) {
     foundRegimens.value = [];
-    showResult.value = true; // แสดงข้อความ "ไม่พบข้อมูล"
+    showResult.value = true;
     return;
   }
+
   const selectedStrengths = Object.keys(availableStrengths.value)
                                 .filter(strength => availableStrengths.value[strength])
                                 .map(Number);
+
   if (selectedStrengths.length === 0) {
-     foundRegimens.value = 'no_strength_selected';
-     showResult.value = true;
-     return;
+    foundRegimens.value = 'no_strength_selected';
+    showResult.value = true;
+    return;
   }
+
+  // ** Logic ใหม่ที่ถูกต้องตามหลัก Subset **
   const results = warfarinDatabase.filter(regimen => {
     const isTwdMatch = regimen.TWD === twd;
-    const areStrengthsAvailable = regimen.AvailableStrengths.every(
-      requiredStrength => selectedStrengths.includes(requiredStrength)
+    if (!isTwdMatch) {
+      return false; // ถ้า TWD ไม่ตรง ตัดออกได้เลย
+    }
+
+    // ตรวจสอบว่ายาที่ต้องใช้ใน Regimen นี้ (regimen.AvailableStrengths)
+    // เป็น Subset ของยาที่ผู้ใช้เลือก (selectedStrengths) หรือไม่
+    // every() จะคืนค่า true ก็ต่อเมื่อ "ทุกตัว" ใน regimen.AvailableStrengths
+    // สามารถหาเจอได้ใน selectedStrengths
+    const isSubset = regimen.AvailableStrengths.every(requiredStrength =>
+      selectedStrengths.includes(requiredStrength)
     );
-    return isTwdMatch && areStrengthsAvailable;
+
+    return isSubset;
   });
+
   foundRegimens.value = results;
   showResult.value = true;
 }
+
+
 function resetForm() {
   localOriginalTWD.value = null; // เคลียร์ local state
   localTargetTWD.value = null;   // เคลียร์ local state
@@ -98,7 +113,7 @@ const alertClasses = computed(() => {
 
 <template>
   <div>
-    <h2 class="text-xl font-bold text-blue-600 mb-4">TWD Design</h2>
+    <div class="flex gap-2"><h2 class="text-xl font-bold text-blue-600 mb-4">TWD Design</h2> <h3 class="text-xl font-light text-gray-500 mb-4" >Available 3-70 mg</h3></div>
 
     <div class="mb-6">
       <label class="block text-sm font-medium text-gray-500 mb-2">Available Strength</label>
@@ -108,7 +123,7 @@ const alertClasses = computed(() => {
                   type="checkbox"
                   :id="'w' + strength"
                   v-model="availableStrengths[strength]"
-                  class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  class="h-5 w-5 rounded border-gray-300 text-blue-600 accent-blue-600 focus:ring-blue-500"
                 />
                 <span class="text-gray-700">{{ strength }} mg</span>
             </label>
@@ -117,7 +132,7 @@ const alertClasses = computed(() => {
 
     <div class="space-y-4">
         <div>
-            <label for="manualOriginalTWD" class="block text-sm font-bold text-gray-700">ขนาดยาเดิม (mg/wk)</label>
+            <label for="manualOriginalTWD" class="block text-sm font-bold text-gray-700">TWD เดิม (mg/wk)</label>
             <input
                 type="number"
                 id="manualOriginalTWD"
