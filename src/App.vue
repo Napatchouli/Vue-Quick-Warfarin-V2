@@ -37,11 +37,11 @@ function updateSharedTWDs({ originalTWD, recommendedTWD }) {
 <template>
   <div class="bg-gray-50 min-h-screen font-sans text-gray-800">
     <header class="sticky top-0 z-40 p-4 text-center bg-gray-800 shadow-sm md:p-6">
-      <h1 class="text-2xl font-bold text-blue-600 md:text-3xl">Quick Warfarin V.2</h1>
+      <h1 class="text-2xl font-bold text-blue-400 md:text-3xl">Quick Warfarin V.2</h1>
       <p class="text-sm text-white">
       Developed by Pharmacist Napat Sampatpong
       </p>
-      <p class="text-sm text-amber-400 font-light ">
+      <p class="text-sm italic text-amber-400 font-light ">
       Last updated : Jun 30,2025
       </p>
     </header>
@@ -49,7 +49,7 @@ function updateSharedTWDs({ originalTWD, recommendedTWD }) {
     <main class="p-4 pb-24 md:pb-4">
       <nav class="hidden md:flex justify-center mb-6 border-b border-gray-200 ">
         <button v-for="(component, tabName) in tabs" :key="tabName" :class="[
-          'px-6 py-3 font-bold text-gray-600 border-b-2 transition-colors duration-300',
+          'px-6 py-3 font-bold text-gray-600 border-b-2 transition-colors duration-100',
           activeTabName === tabName ? 'border-blue-500 text-blue-600 font-bold' : 'border-transparent hover:border-gray-300 text-blue-600'
         ]" @click="selectTab(tabName)">
           {{ tabName }}
@@ -69,7 +69,7 @@ function updateSharedTWDs({ originalTWD, recommendedTWD }) {
     <nav
       class="md:hidden fixed bottom-0 left-0 right-0 bg-blue-600 font-bold shadow-lg flex justify-around z-50 border-t border-gray-200">
       <button v-for="(component, tabName) in tabs" :key="tabName + '-mobile'" :class="[
-        'flex-1 p-3 text-center transition-colors duration-300 text-sm',
+        'flex-1 p-3 text-center transition-colors duration-100 text-sm',
         activeTabName === tabName ? 'text-blue-600 bg-blue-50' : 'text-white hover:bg-gray-100 hover:text-gray-700'
       ]" @click="selectTab(tabName)">
         {{ tabName }}

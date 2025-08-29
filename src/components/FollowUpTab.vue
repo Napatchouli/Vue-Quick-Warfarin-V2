@@ -9,6 +9,8 @@ const dosingEntries = ref([
 const startDate = ref(new Date().toISOString().split('T')[0]);
 const endDate = ref(getEndDatePlus(28));
 const dayLabels = { 0: 'อา', 1: 'จ', 2: 'อ', 3: 'พ', 4: 'พฤ', 5: 'ศ', 6: 'ส' };
+const followup_date = {0: '1 week',1:'2 week', 2:'3 week', 3:'1 month',4:'3 month',5:'6 month'}
+const selectedFollowUp = ref(''); // Add this to reactive state section
 
 // ---- Functions ----
 function addEntry() {
@@ -31,6 +33,20 @@ function getEndDatePlus(days) {
   return date.toISOString().split('T')[0];
 }
 
+function calculateFollowUpDate(period) {
+  if (!startDate.value) return;
+  const start = new Date(startDate.value);
+  switch (period) {
+    case '1 week': start.setDate(start.getDate() + 7); break;
+    case '2 week': start.setDate(start.getDate() + 14); break;
+    case '3 week': start.setDate(start.getDate() + 21); break;
+    case '1 month': start.setDate(start.getDate() + 30); break;
+    case '3 month': start.setDate(start.getDate() + 90); break;
+    case '6 month': start.setDate(start.getDate() + 180); break;
+  }
+  endDate.value = start.toISOString().split('T')[0];
+}
+
 // ---- Computed Properties (เหมือนเดิม) ----
 const totalWeeklyDose = computed(() => {
   // Logic เหมือนเดิม
@@ -43,27 +59,39 @@ const totalWeeklyDose = computed(() => {
 });
 
 const dispensingSummary = computed(() => {
-  // Logic เหมือนเดิม
   if (!startDate.value || !endDate.value || new Date(endDate.value) < new Date(startDate.value)) {
     return { error: 'กรุณาเลือกช่วงวันที่ให้ถูกต้อง' };
   }
+  
   const summary = {};
   let currentDate = new Date(startDate.value);
   let end = new Date(endDate.value);
+  
   while (currentDate <= end) {
     const dayOfWeek = currentDate.getDay();
     dosingEntries.value.forEach(entry => {
       if (entry.days[dayOfWeek]) {
         const dosage = entry.dosage;
         const tablets = parseFloat(entry.tabletsPerDay) || 0;
-        if (!summary[dosage]) {
-          summary[dosage] = { totalTablets: 0, dosage: entry.dosage, tabletsPerDay: entry.tabletsPerDay, days: entry.days, allDays: entry.allDays };
+        // Create a unique key based on dosage and administration pattern
+        const daysPattern = Object.entries(entry.days).map(([day, value]) => value ? '1' : '0').join('');
+        const key = `${dosage}-${daysPattern}-${entry.tabletsPerDay}`;
+        
+        if (!summary[key]) {
+          summary[key] = {
+            totalTablets: 0,
+            dosage: entry.dosage,
+            tabletsPerDay: entry.tabletsPerDay,
+            days: entry.days,
+            allDays: entry.allDays
+          };
         }
-        summary[dosage].totalTablets += tablets;
+        summary[key].totalTablets += tablets;
       }
     });
     currentDate.setDate(currentDate.getDate() + 1);
   }
+  
   return Object.values(summary).map(item => ({
     ...item,
     totalTablets: Math.ceil(item.totalTablets)
@@ -106,9 +134,42 @@ function getSelectedDaysText(entry) {
                 <label for="startDate" class="block text-sm font-medium text-gray-700">Start Date</label>
                 <input type="date" id="startDate" v-model="startDate" class="mt-1 w-full p-2 border rounded-md">
             </div>
-            <div>
+            <div class="space-y-2">
+              <div>
                 <label for="endDate" class="block text-sm font-medium text-gray-700">End Date (Follow-up)</label>
                 <input type="date" id="endDate" v-model="endDate" class="mt-1 w-full p-2 border rounded-md">
+              </div>
+              <!--Followupperiod
+                <div>
+                <label for="followupPeriod" class="block text-sm font-medium text-gray-700">Follow-up Period</label>
+                <select 
+                  id="followupPeriod" 
+                  class="mt-1 w-full p-2 border rounded-md"
+                  @change="(e) => calculateFollowUpDate(e.target.value)"
+                >
+                  <option value="">Select follow-up period</option>
+                  <option v-for="(label, key) in followup_date" :key="key" :value="label">
+                    {{ label }}
+                  </option>
+                </select>
+              </div> -->
+              <div class="flex flex-wrap gap-2">
+                <label v-for="(label, key) in followup_date" 
+                       :key="key" 
+                       class="cursor-pointer">
+                  <input type="radio" 
+                         v-model="selectedFollowUp" 
+                         :value="label" 
+                         class="sr-only peer"
+                         @change="calculateFollowUpDate(label)">
+                  <div class="px-3 py-1.5 border rounded-full text-sm font-medium transition-colors duration-200 
+                              peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 
+                              hover:bg-gray-100">
+                    {{ label }}
+                  </div>
+                </label>
+              </div>
+
             </div>
         </div>
         <div class="bg-blue-50 p-4 rounded-lg space-y-4">
